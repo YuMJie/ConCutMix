@@ -33,11 +33,10 @@ Details of other datasets can be found in our paper.
 Before you start traning the model, you would better to notice this parameter:\
 `--data you_dataset_path`\
 `--device_id Multi-GPU_ID` or  `--gpu GPU_ID` 
-
 ### 3.Test
 Before you start testing the model, you should set:\
 `--resume you_model.path.tar`\
-`--reload True`\
+`--reload True`
 ### 4. Run
 We provide the implementation and the bash file on the path `./run_files`. 
 You can easily run the code just like this:\
@@ -55,9 +54,6 @@ You can easily run the code just like this:\
 `bash imagenet_resnext_180.sh`
 #### iNaturalist 2018
 `bash inaturalist_resnet_100.sh`
-
-
-
 > If you need to modify the hyperparameters, please refer to the contents of the main program file [_main.py_](main.py) and the [bash file](run_files).
 ### 5. Reproducing the Experiment 
 Furthermore, we run our bash file on CIFAR-100-LT and CIFAR-10-LT at 100 imbalance factor for 200 epochs, and  provide two log files from running this code twice `run1.log` and `run2.log`. The results are shown in the following table:
