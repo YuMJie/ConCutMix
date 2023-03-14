@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="11c81f82-f4ab-44c1-a1ef-2bfbb923e1ae" name="server-5">
+        <fileTransfer rootFolder="/home/chenjian/Yumj" accessType="SFTP" host="43.142.58.25" port="9997" sshConfigId="410a72c9-b0db-4fb2-9131-41fb1eeb35f2" sshConfig="Yumj@43.142.58.25:9997 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
