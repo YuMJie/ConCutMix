@@ -2,8 +2,8 @@
 The key code of our work "Contrastive CutMix Augmentation for Long-Tailed Recognition".
 
 ![framework](img/frame.jpg)
-##Results
-###CIFAR-LT 
+## Results
+### CIFAR-LT 
 
 |   Dataset    | Epoch | Imbalance Factor |Top-1 Acc.|             Log             |
 |:------------:|:-----:|:----------------:|:-----:|:---------------------------:|
@@ -16,7 +16,7 @@ The key code of our work "Contrastive CutMix Augmentation for Long-Tailed Recogn
 | CIFAR-100-LT |  400  |       100        |   55.06    | [read](\log\cifar100_400.log) |
 
 
-###ImageNet-LT 
+### ImageNet-LT 
 | Dataset  |   Model    | Epoch | Top-1 Acc. |                  Log                  |
 |:--------:|:----------:|:-----:|:----------:|:-------------------------------------:|
 | ImageNet-LT | ResNet-50  |  100  |   58.49    | [read](\log\imagenet_resnet_100.log)  |
@@ -25,7 +25,7 @@ The key code of our work "Contrastive CutMix Augmentation for Long-Tailed Recogn
 
 [//]: # (|  iNaturalist 2018  | ResNet-50  |  100  |   72.06    |                  --                   |)
 
-##Get Start
+## Get Start
 ### 1. Dataset
 CIFAR-10 and CIFAR-100 can be automatically downloaded by torchvision.
 Details of other datasets can be found in our paper.
@@ -41,19 +41,19 @@ Before you start testing the model, you should set:\
 ### 4. Run
 We provide the implementation and the bash file on the path `./run_files`. 
 You can easily run the code just like this:\
-####CIFAR-LT for 200epochs
+#### CIFAR-LT for 200epochs
 `bash cifar10_imb10.sh`\
 `bash cifar10_imb50.sh`\
 `bash cifar10_imb100.sh`\
 `bash cifar100_imb10.sh`\
 `bash cifar100_imb50.sh`
-####CIFAR-100-LT for 400epochs
+#### CIFAR-100-LT for 400epochs
 `bash cifar100_imb100_400.sh`
-####ImageNet-LT
+#### ImageNet-LT
 `bash imagenet_resnet_100.sh`\
 `bash imagenet_resnext_90.sh`\
 `bash imagenet_resnext_180.sh`
-####iNaturalist 2018
+#### iNaturalist 2018
 `bash inaturalist_resnet_100.sh`
 
 
