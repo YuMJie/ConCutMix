@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="Yumj@43.142.58.25:9998 password" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="Yumj@106.53.106.112:9998 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/CCA" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Yumj@222.201.134.233:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/CCA" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Yumj@222.201.134.239:22 password">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Yumj@222.201.134.240:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/clfl" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Yumj@222.201.134.241:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/clfl" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Yumj@43.142.58.25:9998 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/CCA" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Yumj@43.142.58.25:9998 password (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/clfl" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Yumj@43.142.58.25:9998 password (2)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Yumj@43.142.58.25:9998 password (3)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="server-2080-1">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/clfl" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="server-5">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/clfl" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
