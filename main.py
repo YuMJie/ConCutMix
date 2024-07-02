@@ -10,13 +10,15 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn.functional as F
-import torchvision
+import torchvision.models as models_office
+import csv
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from dataset.cifar import IMBALANCECIFAR10
 from dataset.cifar import IMBALANCECIFAR100
 from dataset.imagenet import ImageNetLT
 from dataset.inaturalist import INaturalist
+from dataset.PlacesLT import PlacesLT
 from loss.contrastive import BalSCL
 from loss.logitadjust import LogitAdjust, cutmix_cross_entropy
 from models.resnet32 import BCLModel_32
@@ -24,11 +26,12 @@ from models.resnext import BCLModel
 from utils import rand_augment_transform
 from utils import shot_acc, GaussianBlur
 from utils import CIFAR10Policy
+from concurrent.futures import ThreadPoolExecutor
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', default='imagenet', choices=['inat', 'imagenet', 'cifar10', 'cifar100'])
+parser.add_argument('--dataset', default='imagenet', choices=['inat', 'imagenet', 'cifar10', 'cifar100','Places_LT'])
 parser.add_argument('--data', default='/DATACENTER/raid5/zjg/imagenet', metavar='DIR')
-parser.add_argument('--arch', default='resnext50', choices=['resnet50', 'resnext50', 'resnet32'])
+parser.add_argument('--arch', default='resnext50', choices=['resnet50', 'resnext50', 'resnet32', 'resnet152' ,'resnext101'])
 parser.add_argument('--workers', default=12, type=int)
 parser.add_argument('--epochs', default=90, type=int)
 parser.add_argument('--temp', default=0.07, type=float, help='scalar temperature for contrastive learning')
@@ -81,8 +84,10 @@ parser.add_argument('--file_name', default="", type=str)
 parser.add_argument('--device_ids', default=[0, 1, 2, 3], type=int, nargs="*")
 parser.add_argument('--save_epoch', default=None, type=int)
 parser.add_argument('--auto_resume', action='store_true')
-
-
+parser.add_argument('--reload_torch', default=None, type=str,
+                    help='load supervised model from torchvision')
+parser.add_argument('--num_classes', default=None, type=int,
+                    help='num_classes')
 # neptune
 parser.add_argument('--logger', default="none", type=str, choices=["neptune", "none"])
 parser.add_argument('--ne_token', default="", type=str)
@@ -117,8 +122,8 @@ def main():
     args = parser.parse_args()
     args.store_name = '_'.join(
         [args.file_name, args.dataset, args.arch, 'batchsize', str(args.batch_size), 'epochs', str(args.epochs), 'temp',
-         str(args.temp),
-         'lr', str(args.lr), args.cl_views])
+         str(args.temp),"cutmix_prob",str(args.cutmix_prob), "topk", str(args.topk), "scaling_factor", str(args.scaling_factor[0]), str(args.scaling_factor[1]),"tau",str(args.tau)
+         ,'lr', str(args.lr), args.cl_views])
     print(args.store_name)
     if args.seed is not None:
         random.seed(args.seed)
@@ -150,7 +155,6 @@ def main_worker(gpu, ngpus_per_node, args):
     logger_run = None
     print(args.logger)
     if (args.logger == "neptune"):
-        print(66666666)
         if (args.ne_run != None):
 
             logger_run = neptune.init_run(with_id=args.ne_run,project=args.ne_project,
@@ -184,19 +188,25 @@ def main_worker(gpu, ngpus_per_node, args):
 
     if args.arch == 'resnet50':
         model = BCLModel(name='resnet50', feat_dim=args.feat_dim,
-                                 num_classes=8142 if args.dataset == "inat" else 1000,
+                                 num_classes=args.num_classes ,
 
                                  use_norm=args.use_norm)
     elif args.arch == 'resnext50':
-        model = BCLModel(name='resnext50', feat_dim=args.feat_dim,
+        model = BCLModel(name='resnext50', feat_dim=args.feat_dim,num_classes=args.num_classes,
                                  use_norm=args.use_norm)
     elif args.arch == 'resnet32':
 
         model = BCLModel_32(name='resnet32', feat_dim=args.feat_dim,
-                                   num_classes=10 if args.dataset == "cifar10" else 100,
+                                   num_classes=args.num_classes,
                                    use_norm=args.use_norm)
-
-
+    elif args.arch =="resnet152":
+        model = BCLModel(name='resnet152', feat_dim=args.feat_dim,
+                                 num_classes=args.num_classes ,
+                                 use_norm=args.use_norm)
+    elif args.arch == 'resnext101':
+        model = BCLModel(name='resnext101', feat_dim=args.feat_dim,
+                                 num_classes=args.num_classes ,
+                                 use_norm=args.use_norm)
     else:
         raise NotImplementedError('This model is not supported')
     # print(model)
@@ -249,7 +259,17 @@ def main_worker(gpu, ngpus_per_node, args):
                       .format(filename, checkpoint['epoch']))
             else:
                 print("=> no auto checkpoint found at '{}'".format(filename))
-
+    elif args.reload_torch:
+            state_dict = model.state_dict()
+            state_dict_imagenet = torch.load(args.reload_torch)
+            for key in state_dict.keys():
+                    newkey = key[8:]
+                    if newkey in state_dict_imagenet.keys() and state_dict[key].shape == state_dict_imagenet[newkey].shape:
+                        state_dict[key]=state_dict_imagenet[newkey]
+                        print(newkey+" ****loaded******* ")
+                    else:
+                        print(key+" ****unloaded******* ")
+            model.load_state_dict(state_dict)
     # cudnn.benchmark = True
 
     normalize = transforms.Normalize((0.466, 0.471, 0.380), (0.195, 0.194, 0.192)) if args.dataset == 'inat' \
@@ -375,11 +395,30 @@ def main_worker(gpu, ngpus_per_node, args):
         ])
         val_dataset = IMBALANCECIFAR10(root=args.data, args=args,
                                        transform=val_transform,
-                                       train=False, imb_factor=1)
+                                       train=False, imb_factor=1,download=True)
         train_dataset = IMBALANCECIFAR10(
                 root=args.data, args=args,download=True,
                 imb_factor=args.imb_factor,
                 transform=transform_train)
+    elif args.dataset == 'Places_LT':
+        val_transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            normalize
+        ])
+
+        txt_val = f'../dataset/Places_LT/Places_LT_val.txt'
+        txt_train = f'../dataset/Places_LT/Places_LT_train.txt'
+        train_dataset = PlacesLT(
+                root=args.data,
+                args=args,
+                txt=txt_train,
+                transform=transform_train)
+        val_dataset = PlacesLT(
+            root=args.data,
+            txt=txt_val,
+            transform=val_transform, train=False,args=args)
     else:
         val_transform = transforms.Compose([
             transforms.ToTensor(),
@@ -427,6 +466,14 @@ def main_worker(gpu, ngpus_per_node, args):
         elif args.dataset == 'cifar10':
             test_dataset = IMBALANCECIFAR10(root=args.data, args=args, transform=val_transform, train=False,
                                             imb_factor=1,download=True)
+        elif args.dataset == 'Places_LT':
+            txt_train = f'../dataset/Places_LT/Places_LT_val.txt'
+
+            test_dataset = PlacesLT(
+                root=args.data,
+                txt=txt_val,
+                transform=val_transform, train=False,args=args)
+
         else:
             test_dataset = IMBALANCECIFAR100(root=args.data, args=args, transform=val_transform, train=False,
                                              imb_factor=1,
@@ -511,8 +558,8 @@ def train(train_loader, model, criterion_ce, criterion_ce_cutmix, criterion_scl,
         if r < args.cutmix_prob:
                 target_a = target_A
                 target_b = target_B[rand_index]
-                ta = torch.nn.functional.one_hot(target_a, num_classes=len(cls_num_list))
-                tb = torch.nn.functional.one_hot(target_b, num_classes=len(cls_num_list))
+                ta = torch.nn.functional.one_hot(target_a, num_classes=args.num_classes)
+                tb = torch.nn.functional.one_hot(target_b, num_classes=args.num_classes)
                 bbx1, bby1, bbx2, bby2 = rand_bbox(sample_B[0].size(), lam)
                 cutmix_sample1 = sample_A[0].clone()
                 cutmix_sample1[:, :, bbx1:bbx2, bby1:bby2] = sample_B[0][rand_index, :, bbx1:bbx2, bby1:bby2]
@@ -635,7 +682,7 @@ def validate(train_loader, val_loader, model, criterion_ce, epoch, args, flag='v
             print(output)
         probs, preds = F.softmax(total_logits.detach(), dim=1).max(dim=1)
         many_acc_top1, median_acc_top1, low_acc_top1, class_acc = shot_acc(preds, total_labels, train_loader,
-                                                                           acc_per_cls=False)
+                                                                        acc_per_cls=False)
         return top1.avg, many_acc_top1, median_acc_top1, low_acc_top1, class_acc
 
 
